@@ -1,10 +1,15 @@
-let inputBuffer = '';
+let inputBuffer = '0';
 let firstOperand = null;
 let operator = null;  
 let secondOperand = null;
 let isResultDisplayed = false;
 let awaitingNegativeSecond = false;
 let hasDecimal = false;
+let negative = false;
+
+// on start
+const result = document.querySelector('#main');
+result.textContent = inputBuffer;
 
 function add(a, b) { return a + b; }
 function subtract(a, b) { return a - b; }
@@ -26,8 +31,10 @@ function operate(operator, a, b) {
 const lgb = document.querySelectorAll('.light-grey-buttons button');
 lgb.forEach(btn => {
   const value = btn.textContent;
-  if (value === 'AC' || value === 'C') {
+  if (value === 'C') {
     btn.dataset.type = 'clear';
+  } else if (value === 'AC') {
+    btn.dataset.type = 'backspace';
   } else if (value === '+/-') {
     btn.dataset.type = 'sign';
   } else if (value === '%') {
@@ -69,6 +76,7 @@ ob.forEach((btn) => {
   }
 });
 
+const clr = document.querySelectorAll('.light-grey-buttons button')[0];
 document.querySelector('.buttons').addEventListener('click', (e) => {
   if (e.target.tagName !== 'BUTTON') return;
 
@@ -80,30 +88,104 @@ document.querySelector('.buttons').addEventListener('click', (e) => {
     case 'digit': handleDigit(value); break;
     case 'operator': handleOperator(value); break;
     case 'clear': handleClear(); break;
+    case 'backspace': handleBackspace(); break;
     case 'equals': handleEquals(); break;
     case 'decimal': handleDecimal(); break;
     case 'sign': toggleSign(); break;
   }
+
+    // clear or backspace
+    if (result.textContent.length > 1 || result.textContent !== '0') {
+      clr.dataset.type = 'backspace';
+      clr.textContent = 'AC'
+    } else {
+      clr.dataset.type = 'clear';
+      clr.textContent = 'C'
+    }
 });
 
-function handleDigit() {
-  return;
+// helper
+function updateDisplay() {
+  if (operator && firstOperand !== null && !isResultDisplayed) {
+    result.textContent = `${firstOperand}${operator}${inputBuffer}`;
+  } else {
+    result.textContent = inputBuffer;
+  }
 }
-function handleOperator() {
-  return;
+
+// core
+function handleDigit(value) {
+  if (inputBuffer === '0') {
+    inputBuffer = value;
+  } else {
+    inputBuffer += value;
+  }
+
+  updateDisplay();
 }
+
+function handleOperator(value) {
+  if (operator !== null) {
+    if (awaitingNegativeSecond && operator !== '+' && operator !== '-') {
+      inputBuffer += '-';
+      updateDisplay();
+      awaitingNegativeSecond = false;
+    }
+    return;
+  }
+
+  operator = value;
+  firstOperand = inputBuffer;
+  inputBuffer = '';
+  updateDisplay();
+  awaitingNegativeSecond = true;
+  hasDecimal = false;
+}
+
 function handleClear() {
-  return;
+  inputBuffer = '0';
+  firstOperand = null;
+  operator = null;  
+  secondOperand = null;
+  isResultDisplayed = false;
+  awaitingNegativeSecond = false;
+  hasDecimal = false;
+  negative = false;
+  updateDisplay();
 }
+
+function handleBackspace() {
+  let len = inputBuffer.length;
+  len === 1 ? inputBuffer = '0' : inputBuffer = inputBuffer.slice(0, len-1);
+  updateDisplay();
+}
+
 function handleEquals() {
   return;
 }
-function handleEquals() {
-  return;
-}
+
 function handleDecimal() {
-  return;
+  if (hasDecimal) return;
+
+  if (inputBuffer === '') inputBuffer = '0';
+
+  inputBuffer += '.';
+  hasDecimal = true;
+
+  updateDisplay();
 }
+
 function toggleSign() {
-  return;
+  if (inputBuffer === '' ||  inputBuffer === '0') return;
+
+  if (inputBuffer.startsWith('-(') && inputBuffer.endsWith(')')) {
+    inputBuffer = inputBuffer.slice(2, -1);
+  } else if (inputBuffer.startsWith('-') && operator !== null && isNaN(inputBuffer)) {
+    inputBuffer = '';
+  } else {
+    inputBuffer = `-(${inputBuffer})`;
+  }
+
+  updateDisplay();
 }
+

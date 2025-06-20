@@ -5,7 +5,6 @@ let secondOperand = null;
 let isResultDisplayed = false;
 let awaitingNegativeSecond = false;
 let hasDecimal = false;
-let negative = false;
 
 // on start
 const result = document.querySelector('#main');
@@ -150,7 +149,6 @@ function handleClear() {
   isResultDisplayed = false;
   awaitingNegativeSecond = false;
   hasDecimal = false;
-  negative = false;
   updateDisplay();
 }
 

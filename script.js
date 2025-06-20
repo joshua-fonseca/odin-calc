@@ -157,14 +157,20 @@ function handleClear() {
 function handleBackspace() {
   let len = inputBuffer.length;
 
+  // when wanting to delete the first digit of second operand
   if (len === 1 && firstOperand !== null) {
     inputBuffer = '';
+  // when wanting to delete the first digit of first operand
   } else if (len === 1) {
     inputBuffer = '0';
+  // when wanting to delete the operator
   } else if(inputBuffer === '') {
     operator = null;
     inputBuffer = firstOperand;
     firstOperand = null;
+  // when wanting to delete a bracket -> this is not native to iOS but... it's complicated
+  } else if (inputBuffer.startsWith('-(')) {
+    toggleSign();
   } else {
     inputBuffer = inputBuffer.slice(0, len-1);
   }

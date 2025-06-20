@@ -156,7 +156,18 @@ function handleClear() {
 
 function handleBackspace() {
   let len = inputBuffer.length;
-  len === 1 ? inputBuffer = '0' : inputBuffer = inputBuffer.slice(0, len-1);
+
+  if (len === 1 && firstOperand !== null) {
+    inputBuffer = '';
+  } else if (len === 1) {
+    inputBuffer = '0';
+  } else if(inputBuffer === '') {
+    operator = null;
+    inputBuffer = firstOperand;
+    firstOperand = null;
+  } else {
+    inputBuffer = inputBuffer.slice(0, len-1);
+  }
   updateDisplay();
 }
 

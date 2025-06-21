@@ -1,7 +1,6 @@
 let inputBuffer = '0';
 let firstOperand = null;
 let operator = null;  
-let secondOperand = null;
 let isResultDisplayed = false;
 let awaitingNegativeSecond = false;
 let hasDecimal = false;
@@ -123,29 +122,53 @@ function handleDigit(value) {
   updateDisplay();
 }
 
-function handleOperator(value) {
-  if (operator !== null) {
-    if (awaitingNegativeSecond && operator !== '+' && operator !== '-') {
-      inputBuffer += '-';
-      updateDisplay();
-      awaitingNegativeSecond = false;
-    }
-    return;
-  }
+// function handleOperator(value) {
+//   if (operator !== null) {
+//     if (awaitingNegativeSecond && operator !== '+' && operator !== '-' && value === '-' && inputBuffer === '') {
+//       inputBuffer += '-';
+//       updateDisplay();
+//       awaitingNegativeSecond = false;
+//     }
+//     return;
+//   }
 
-  operator = value;
-  firstOperand = inputBuffer;
-  inputBuffer = '';
+//   operator = value;
+//   firstOperand = inputBuffer;
+//   inputBuffer = '';
+//   updateDisplay();
+//   awaitingNegativeSecond = true;
+// }
+
+function handleOperator(value) {
+  // when operator does not exist
+  if (operator === null) {
+    firstOperand = inputBuffer;
+    inputBuffer = '';
+    awaitingNegativeSecond = true;
+    operator = value;
+  }
+  else if (awaitingNegativeSecond) {
+    if (operator !== '+' && operator !== '-' && value === '-' && inputBuffer === '') {
+      inputBuffer += '-';
+      awaitingNegativeSecond = false;
+      // if operator exists, replace it
+    } else {
+        operator = value;
+        inputBuffer = '';
+    }
+    // in the case that someone presses operator again despite having an operator + '-' in inputBuffer
+  } else {
+    operator = value;
+    inputBuffer = '';
+    awaitingNegativeSecond = true;
+  }
   updateDisplay();
-  awaitingNegativeSecond = true;
-  hasDecimal = false;
 }
 
 function handleClear() {
   inputBuffer = '0';
   firstOperand = null;
   operator = null;  
-  secondOperand = null;
   isResultDisplayed = false;
   awaitingNegativeSecond = false;
   hasDecimal = false;
@@ -158,6 +181,8 @@ function handleBackspace() {
   // when wanting to delete the first digit of second operand
   if (len === 1 && firstOperand !== null) {
     inputBuffer = '';
+    // in the case the first digit is '-'
+    awaitingNegativeSecond = true;
   // when wanting to delete the first digit of first operand
   } else if (len === 1) {
     inputBuffer = '0';
@@ -166,8 +191,9 @@ function handleBackspace() {
     operator = null;
     inputBuffer = firstOperand;
     firstOperand = null;
+    awaitingNegativeSecond = false;
   // when wanting to delete a bracket -> this is not native to iOS but... it's complicated
-  } else if (inputBuffer.startsWith('-(')) {
+  } else if (inputBuffer.startsWith('(-')) {
     toggleSign();
   } else {
     inputBuffer = inputBuffer.slice(0, len-1);
@@ -176,6 +202,7 @@ function handleBackspace() {
 }
 
 function handleEquals() {
+  secondOperand = inputBuffer;
   return;
 }
 
@@ -193,12 +220,14 @@ function handleDecimal() {
 function toggleSign() {
   if (inputBuffer === '' ||  inputBuffer === '0') return;
 
-  if (inputBuffer.startsWith('-(') && inputBuffer.endsWith(')')) {
+  if (inputBuffer.startsWith('(-') && inputBuffer.endsWith(')')) {
     inputBuffer = inputBuffer.slice(2, -1);
   } else if (inputBuffer.startsWith('-') && operator !== null && isNaN(inputBuffer)) {
-    inputBuffer = '';
+    return;
+  } else if (inputBuffer.startsWith('-') && operator !== null && !isNaN(inputBuffer)) {
+    inputBuffer = inputBuffer.slice(1);
   } else {
-    inputBuffer = `-(${inputBuffer})`;
+    inputBuffer = `(-${inputBuffer})`;
   }
 
   updateDisplay();

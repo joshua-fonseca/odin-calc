@@ -122,32 +122,20 @@ function handleDigit(value) {
   updateDisplay();
 }
 
-// function handleOperator(value) {
-//   if (operator !== null) {
-//     if (awaitingNegativeSecond && operator !== '+' && operator !== '-' && value === '-' && inputBuffer === '') {
-//       inputBuffer += '-';
-//       updateDisplay();
-//       awaitingNegativeSecond = false;
-//     }
-//     return;
-//   }
-
-//   operator = value;
-//   firstOperand = inputBuffer;
-//   inputBuffer = '';
-//   updateDisplay();
-//   awaitingNegativeSecond = true;
-// }
-
 function handleOperator(value) {
+  if (inputBuffer === '-') return;
+
   // when operator does not exist
-  if (operator === null) {
+  if (operator === null && inputBuffer === '0' && value === '-') {
+      inputBuffer = '-';
+  // when operator does not exist
+  } else if (operator === null) {
     firstOperand = inputBuffer;
     inputBuffer = '';
     awaitingNegativeSecond = true;
     operator = value;
-  }
-  else if (awaitingNegativeSecond) {
+    hasDecimal = false; // reset if operand 1 has decimal
+  } else if (awaitingNegativeSecond) {
     if (operator !== '+' && operator !== '-' && value === '-' && inputBuffer === '') {
       inputBuffer += '-';
       awaitingNegativeSecond = false;
@@ -195,15 +183,28 @@ function handleBackspace() {
   // when wanting to delete a bracket -> this is not native to iOS but... it's complicated
   } else if (inputBuffer.startsWith('(-')) {
     toggleSign();
-  } else {
+  }  else {
+    if (inputBuffer.endsWith('.')) hasDecimal = false;
     inputBuffer = inputBuffer.slice(0, len-1);
   }
   updateDisplay();
 }
 
+const sub = document.querySelector('#sub');
 function handleEquals() {
   secondOperand = inputBuffer;
-  return;
+  sub.textContent = `${firstOperand}${operator}${secondOperand}`;
+  
+  let result = operate(operator, cleanInput(firstOperand), cleanInput(secondOperand));
+  handleClear();
+  inputBuffer = String(result);
+  updateDisplay();
+}
+
+function cleanInput(operand) {
+  return operand.includes('.') ?
+    parseFloat(operand.replace('(','').replace(')','')) :
+    parseInt(operand.replace('(','').replace(')',''))
 }
 
 function handleDecimal() {
@@ -218,7 +219,7 @@ function handleDecimal() {
 }
 
 function toggleSign() {
-  if (inputBuffer === '' ||  inputBuffer === '0') return;
+  if (inputBuffer === '' ||  inputBuffer === '0' || inputBuffer === '-') return;
 
   if (inputBuffer.startsWith('(-') && inputBuffer.endsWith(')')) {
     inputBuffer = inputBuffer.slice(2, -1);

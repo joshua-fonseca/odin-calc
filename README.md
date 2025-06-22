@@ -1,6 +1,11 @@
 # odin-calc
 
-It is very unfinished - I would like to rework the logic so everything works nicer together
+Functions like an iOS calculator
+
+Functionality missing from iOS
+- Backspace on brackets behaviour => instead pressing backspace would delete the entire bracket
+- Having the '%' operator be modulo and a percentage calculator => it is only modulo here
+- Chaining operaetions i.e 2 + 2 + 2 + 2 in one line => requirements of this project was to do one set of calculations at a time
 
 ## Project: Calculator - foundations course
 

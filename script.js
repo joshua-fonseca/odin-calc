@@ -4,6 +4,9 @@ let operator = null;
 let isResultDisplayed = false;
 let awaitingNegativeSecond = false;
 let hasDecimal = false;
+let savedOperator = null;
+let savedfirstOperand = null;
+let savedsecondOperand = null;
 
 // on start
 const result = document.querySelector('#main');
@@ -16,6 +19,7 @@ function divide(a, b) { return b === 0 ? 'Undefined' : a / b; }
 function modulo(a, b) { return b === 0 ? 'Undefined' : a % b; }
 
 function operate(operator, a, b) {
+  console.log(a, operator, b);
   switch(operator) {
     case '+': return add(a, b);
     case '-': return subtract(a, b);
@@ -29,9 +33,9 @@ function operate(operator, a, b) {
 const lgb = document.querySelectorAll('.light-grey-buttons button');
 lgb.forEach(btn => {
   const value = btn.textContent;
-  if (value === 'C') {
+  if (value === 'AC') {
     btn.dataset.type = 'clear';
-  } else if (value === 'AC') {
+  } else if (value === '<[x]') {
     btn.dataset.type = 'backspace';
   } else if (value === '+/-') {
     btn.dataset.type = 'sign';
@@ -82,6 +86,8 @@ document.querySelector('.buttons').addEventListener('click', (e) => {
   const value = e.target.textContent;
   console.log(type, value);
 
+  if (value !== '=' && type === 'operator') isResultDisplayed = false;
+
   switch (type) {
     case 'digit': handleDigit(value); break;
     case 'operator': handleOperator(value); break;
@@ -93,18 +99,18 @@ document.querySelector('.buttons').addEventListener('click', (e) => {
   }
 
     // clear or backspace
-    if (result.textContent.length > 1 || result.textContent !== '0') {
+    if ((result.textContent.length > 1 || result.textContent !== '0') && !isResultDisplayed && inputBuffer !== 'Undefined') {
       clr.dataset.type = 'backspace';
-      clr.textContent = 'AC'
+      clr.textContent = '<[x]'
     } else {
       clr.dataset.type = 'clear';
-      clr.textContent = 'C'
+      clr.textContent = 'AC'
     }
 });
 
 // helper
 function updateDisplay() {
-  if (operator && firstOperand !== null && !isResultDisplayed) {
+  if (operator && firstOperand !== null) {
     result.textContent = `${firstOperand}${operator}${inputBuffer}`;
   } else {
     result.textContent = inputBuffer;
@@ -113,17 +119,27 @@ function updateDisplay() {
 
 // core
 function handleDigit(value) {
+  if (isResultDisplayed) {
+    handleClear();
+  }
+  
   if (inputBuffer === '0') {
     inputBuffer = value;
   } else {
     inputBuffer += value;
   }
 
+  if (operator !== null && inputBuffer !== '') {
+    awaitingNegativeSecond = false;
+  }
+
   updateDisplay();
 }
 
 function handleOperator(value) {
-  if (inputBuffer === '-') return;
+  if ((inputBuffer === '-' || inputBuffer === 'Undefined') && operator === null) return;
+
+  let chain = null;
 
   // when operator does not exist
   if (operator === null && inputBuffer === '0' && value === '-') {
@@ -145,10 +161,16 @@ function handleOperator(value) {
         inputBuffer = '';
     }
     // in the case that someone presses operator again despite having an operator + '-' in inputBuffer
-  } else {
+    // as long as the press is NOT a subtract AND not when the second is being typed
+  } else if (isNaN(inputBuffer)) {
+    if (value === '-') return;
     operator = value;
     inputBuffer = '';
     awaitingNegativeSecond = true;
+    // this else is for when a full expression is present and an operator is pressed
+    // behaviour would be to calculate existing and chain
+  } else {
+    handleEquals(value);
   }
   updateDisplay();
 }
@@ -160,6 +182,7 @@ function handleClear() {
   isResultDisplayed = false;
   awaitingNegativeSecond = false;
   hasDecimal = false;
+  sub.textContent = '';
   updateDisplay();
 }
 
@@ -183,7 +206,7 @@ function handleBackspace() {
   // when wanting to delete a bracket -> this is not native to iOS but... it's complicated
   } else if (inputBuffer.startsWith('(-')) {
     toggleSign();
-  }  else {
+ }  else {
     if (inputBuffer.endsWith('.')) hasDecimal = false;
     inputBuffer = inputBuffer.slice(0, len-1);
   }
@@ -191,13 +214,37 @@ function handleBackspace() {
 }
 
 const sub = document.querySelector('#sub');
-function handleEquals() {
-  secondOperand = inputBuffer;
-  sub.textContent = `${firstOperand}${operator}${secondOperand}`;
-  
-  let result = operate(operator, cleanInput(firstOperand), cleanInput(secondOperand));
-  handleClear();
-  inputBuffer = String(result);
+function handleEquals(arg = null) {
+  if ((operator === null || (operator !== null && inputBuffer === '')) && !isResultDisplayed) return;
+
+  if (isResultDisplayed) {
+    isResultDisplayed = false;
+    operator = savedOperator;
+    firstOperand = inputBuffer;
+    inputBuffer = secondOperand;
+    handleEquals();
+    return;
+  } else {
+    secondOperand = inputBuffer;
+    sub.textContent = `${firstOperand}${operator}${secondOperand}`;
+    
+    let result = operate(operator, cleanInput(firstOperand), cleanInput(secondOperand));
+    savedFirstOperand = firstOperand;
+    savedOperator = operator;
+    savedSecondOperand = secondOperand;
+
+    handleClear();
+    inputBuffer = String(result);
+  }
+
+  if (arg !== null) {
+    handleOperator(arg);
+  } else {
+      isResultDisplayed = true;
+  }
+
+  sub.textContent = `${savedFirstOperand}${savedOperator}${savedSecondOperand}`
+
   updateDisplay();
 }
 
@@ -219,7 +266,7 @@ function handleDecimal() {
 }
 
 function toggleSign() {
-  if (inputBuffer === '' ||  inputBuffer === '0' || inputBuffer === '-') return;
+  if (inputBuffer === '' ||  inputBuffer === '0' || inputBuffer === '-' || inputBuffer === 'Undefined') return;
 
   if (inputBuffer.startsWith('(-') && inputBuffer.endsWith(')')) {
     inputBuffer = inputBuffer.slice(2, -1);

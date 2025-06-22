@@ -96,6 +96,7 @@ document.querySelector('.buttons').addEventListener('click', (e) => {
     case 'equals': handleEquals(); break;
     case 'decimal': handleDecimal(); break;
     case 'sign': toggleSign(); break;
+    case 'help': showHelp(); break;
   }
 
     // clear or backspace
@@ -281,3 +282,6 @@ function toggleSign() {
   updateDisplay();
 }
 
+function showHelp() {
+  alert("iOS calculator replica\nMissing:\n- Backspace on brackets\n- Chaining operations\n- % as a percent calculator");
+}

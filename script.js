@@ -140,8 +140,6 @@ function handleDigit(value) {
 function handleOperator(value) {
   if ((inputBuffer === '-' || inputBuffer === 'Undefined') && operator === null) return;
 
-  let chain = null;
-
   // when operator does not exist
   if (operator === null && inputBuffer === '0' && value === '-') {
       inputBuffer = '-';

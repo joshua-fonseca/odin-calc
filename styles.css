@@ -107,3 +107,7 @@ button {
   align-self: center;
   margin-top: 4.5rem;
 }
+
+* {
+    touch-action: manipulation;
+}

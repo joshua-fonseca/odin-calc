@@ -1,4 +1,5 @@
 let inputBuffer = '0';
+// let inputBuffer = '12309812398201083912';
 let firstOperand = null;
 let operator = null;  
 let isResultDisplayed = false;
@@ -110,12 +111,24 @@ document.querySelector('.buttons').addEventListener('click', (e) => {
 });
 
 // helper
+const baseSize = 4;
+const minSize = 1.25;
 function updateDisplay() {
   if (operator && firstOperand !== null) {
     result.textContent = `${firstOperand}${operator}${inputBuffer}`;
   } else {
     result.textContent = inputBuffer;
   }
+  // dynamic font size based on length
+  const length = result.textContent.length;
+  let size = baseSize;
+
+  if (length > 8) {
+    size = baseSize * (8 / length); // scale down after 8 chars
+    size = Math.max(size, minSize);  // prevent going too small
+  }
+
+  result.style.fontSize = `${size}rem`;
 }
 
 // core
@@ -281,5 +294,5 @@ function toggleSign() {
 }
 
 function showHelp() {
-  alert("iOS calculator replica\nMissing:\n- Backspace on brackets\n- Chaining operations\n- % as a percent calculator");
+  alert("iOS calculator replica\nMissing:\n- Backspace on brackets\n- Chaining operations\n- % as a percent calculator\n- Scrollable result line when number is too big\n\nTODO:\n- Fix number overflow\n- Add touch or keyboard support");
 }

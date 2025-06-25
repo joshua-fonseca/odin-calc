@@ -294,5 +294,28 @@ function toggleSign() {
 }
 
 function showHelp() {
-  alert("iOS calculator replica\nMissing:\n- Backspace on brackets\n- Chaining operations\n- % as a percent calculator\n- Scrollable result line when number is too big\n\nTODO:\n- Fix number overflow\n- Add touch or keyboard support");
+  alert("iOS calculator replica\n\nKeyboard controls:\n- 0-9 for digits\n- + - / * % for operators\n- = or Enter for equals\n- Backspace or Escape for clear\n- ? for help (This menu)\n- Spacebar or shift for toggle sign '+/-'\n\nMissing features:\n- Backspace on brackets\n- Chaining operations\n- % as a percent calculator\n- Scrollable result line when number is too big\n\nTODO:\n- Fix number overflow\n- Add touch support");
 }
+
+// keyboard input
+const nums = '0123456789';
+const ops = '+-/*%';
+document.addEventListener('keydown', (e) => {
+  if (nums.includes(e.key)) {
+    handleDigit(e.key);
+  } else if (ops.includes(e.key)) {
+    handleOperator(e.key);
+  } else if (e.key === '.') {
+    handleDecimal()
+  } else if (e.key === '=' || e.key === 'Enter') {
+    handleEquals();
+  } else if (e.key === 'Backspace' || e.key === 'Escape') {
+    handleClear();
+  } else if (e.key === '?') {
+    showHelp();
+  } else if (e.key === ' ' || e.key === 'Shift') {
+    toggleSign();
+  } else {
+    console.log("unrecognized input!");
+  } 
+});
